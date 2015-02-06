@@ -1,0 +1,18 @@
+[
+    [
+        { "x": "+0", "xSpeed": 2000, "xEase": "Linear", "y": "+150", "ySpeed": 2000, "yEase": "Linear" },
+        { "x": "-0", "xSpeed": 2000, "xEase": "Linear", "y": "-150", "ySpeed": 2000, "yEase": "Linear" },
+        { "x": "-0", "xSpeed": 2000, "xEase": "Linear", "y": "-150", "ySpeed": 2000, "yEase": "Linear" },
+        { "x": "+0", "xSpeed": 2000, "xEase": "Linear", "y": "+150", "ySpeed": 2000, "yEase": "Linear" }
+    ],
+    [
+        { "x": "+300", "xSpeed": 2000, "xEase": "Linear", "y": "+0", "ySpeed": 2000, "yEase": "Linear" },
+        { "x": "-300", "xSpeed": 2000, "xEase": "Linear", "y": "-0", "ySpeed": 2000, "yEase": "Linear" },
+        { "x": "-300", "xSpeed": 2000, "xEase": "Linear", "y": "-0", "ySpeed": 2000, "yEase": "Linear" },
+        { "x": "+300", "xSpeed": 2000, "xEase": "Linear", "y": "+0", "ySpeed": 2000, "yEase": "Linear" }
+    ],
+    [
+        { "x": "+0", "xSpeed": 2000, "xEase": "Linear", "y": "+150", "ySpeed": 2000, "yEase": "Linear" },
+        { "x": "-0", "xSpeed": 2000, "xEase": "Linear", "y": "-150", "ySpeed": 2000, "yEase": "Linear" }
+    ]
+]

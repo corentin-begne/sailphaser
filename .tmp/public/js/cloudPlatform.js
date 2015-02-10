@@ -17,7 +17,6 @@ var CloudPlatform;
         this.body.allowGravity = false;
         this.body.immovable = true;        
 
-        this.playerLocked = false;
         this.touched = false;
 
         group.add(this);

@@ -2,23 +2,36 @@
 var Player;
 (function(){
     "use strict";
-    Player = function (game, avatar, platforms) {
+    Player = function (game, avatar, platforms, group) {
 
-        Phaser.Sprite.call(this, game, 0, game.height*100, avatar);
-        game.physics.arcade.enable(this);
+        this._maxSpeedY = 300; // pixels/second
+        this._maxSpeedX = 200; 
+        this._acceleration = 1500; 
+        this._drag = 800;        
+        this._jumpSpeed = 1500;
 
-        this.body.collideWorldBounds = true;   
+        Phaser.Sprite.call(this, game, 0, game.world.height, avatar);
+        this.game.physics.arcade.enable(this);
+
+        this.anchor.x = 0.5
+        this.body.collideWorldBounds = true;  
+        this.body.maxVelocity.setTo(this._maxSpeedX, this._maxSpeedY); 
+        this.body.drag.setTo(this._drag, 0);
+
+        this.interface = new Interface(this.game, avatar, group);
         
         this.platforms = platforms;
         this.avatar = avatar;
         this.jumpCount = 0;
         this.wasLocked = false;
         this.locked = false;
-        this.lockedTo = null;        
+        this.lockedTo = null;   
+        this.hit = false;  
+        this.targetPlatform = null;   
         this.facing = "left";
         this.started = false;
         this.position.x = this.game.rnd.between(0, this.game.width-this.width);
-        game.world.add(this);
+        group.add(this);
         this.init();
     };
 
@@ -36,37 +49,60 @@ var Player;
 
     Player.prototype.startIA = function(){
         var that = this;
-        if (this.locked)
-        {
-            this.checkLock();
-        }
-        if(this.body.y === (this.game.height*100-this.height) || this.locked){
-            this.jumpCount = 0;
-        }
-        this.animations.stop();
-       /* if (this.jumpCount > 2){
-            setTimeout(this.startIA.bind(this), 1000);
+        if(that.hit){
+            requestAnimationFrame(that.startIA.bind(that));
             return false;
-        }*/
-        setTimeout(jumpOnCloud, this.game.rnd.between(0, 1000));
+        }
+        if (that.locked)
+        {
+            that.checkLock();
+        }
+        if(that.body.y === (that.game.world.height-that.height) || that.locked){
+            that.jumpCount = 0;
+            that.targetPlatform = null;
+        }        
+        setTimeout(jumpOnCloud, this.game.rnd.between(250, 500));
 
         function jumpOnCloud(){
-            var nb = that.platforms.children.length-2;
-            if(that.body.x >= that.game.width/2){
-                nb +=1;
+
+            if(that.targetPlatform === null){
+                var nb = Math.floor((that.game.world.height-that.body.y-that.height)/182);
+                if(that.platforms.children[nb] === undefined || that.platforms.children[nb+1] === undefined){
+                    nb = that.platforms.children.length-2;
+                }
+                if(that.body.x >= that.game.width/2){
+                    nb ++;
+                }
+                if(that.locked && that.lockedTo !== null){
+                    nb = that.platforms.getChildIndex(that.lockedTo)+2;
+                }
+                that.targetPlatform = that.platforms.children[nb];
+            }    
+            var deltaX = -(that.body.x-that.targetPlatform.body.x-that.width/2);
+            if(that.targetPlatform.body.x > that.body.x){
+                deltaX = that.targetPlatform.body.x+that.width/2-that.body.x;
             }
-            var platform = that.platforms.children[nb];
-            var deltaX = (platform.body.x+platform.width/2)-that.body.x;
-            if(deltaX < 0){
+            deltaX = Math.floor(deltaX);
+            if(deltaX < -10){
                 that.play("left");
-            }else{
+                that.facing = "left";
+                that.body.acceleration.x = (deltaX > -10) ? deltaX : -that._acceleration; 
+            }else if(deltaX > 10){
                 that.play("right");
+                that.facing = "right";
+                that.body.acceleration.x = (deltaX < 10) ? deltaX : that._acceleration; 
+            }else{
+                if (that.facing !== "idle"){
+                    that.animations.stop();
+                    that.frame = that.animations.currentAnim._frames[0];
+                    that.facing = "idle";                    
+                }
+                that.body.velocity.x = 0; 
+                that.body.acceleration.x = 0;
             }
-            that.body.velocity.x = Math.floor(deltaX);
-            if (platform.body.y < that.body.y){
-                that.jumpCheck();
-            }
-            that.startIA();
+            
+            that.jumpCheck();
+            requestAnimationFrame(that.startIA.bind(that));
         }       
     };
 
@@ -74,12 +110,12 @@ var Player;
 
         if (this.lockedTo && this.lockedTo.deltaY < 0 && this.wasLocked)
         {
-            //  If the platform is moving up we add its velocity to the players jump
-            this.body.velocity.y = -300 + (this.lockedTo.deltaY * 10);
+            //  If the platform is moving up we add its acceleration to the players jump
+            this.body.velocity.y = -this._jumpSpeed + (this.lockedTo.deltaY * 10);
         }
         else
         {
-            this.body.velocity.y = -300;
+            this.body.velocity.y = -this._jumpSpeed;
         }
 
     };
@@ -95,7 +131,6 @@ var Player;
         if (this.wasLocked)
         {
             this.wasLocked = false;
-            this.lockedTo.playerLocked = false;
             this.lockedTo = null;            
         }
 
@@ -117,7 +152,7 @@ var Player;
         this.body.velocity.y = 0;
 
         //  If the player has walked off either side of the platform then they're no longer locked to it
-        if (this.body.right < this.lockedTo.body.x || this.body.x > this.lockedTo.body.right)
+        if (this.lockedTo && (this.body.right < this.lockedTo.body.x || this.body.x > this.lockedTo.body.right))
         {
             this.cancelLock();
         }
@@ -133,11 +168,14 @@ var Player;
 
     Player.prototype.checkNavigation = function (inputs) {
 
-        this.body.velocity.x = 0;
+        this.body.acceleration.x = 0;
 
+        if(this.hit){
+            return false;
+        }
         if (inputs.left.isDown)
         {
-            this.body.velocity.x = -150;
+            this.body.acceleration.x = -this._acceleration;
 
             if (this.facing !== "left")
             {
@@ -147,7 +185,7 @@ var Player;
         }
         else if (inputs.right.isDown)
         {
-            this.body.velocity.x = 150;
+            this.body.acceleration.x = this._acceleration;
 
             if (this.facing !== "right")
             {

@@ -7,19 +7,21 @@ var JumperGame;
         this.scoreText;
         this.tweenX;
         this.tweenY;
+        this._gravity = 300;
+        this._worldSize = 1000;
 
-        this.player = null;
+        this.players = null;
         this.bots = [];
         this.platforms = null;
         this.sky = null;
         
-        this.nbBot = 3;
+        this.nbBot = 1;
         this.jumpkey;
         this.spriteScore;
         this.sprtieOver;
 
         this.cursors = null;
-        this.avatars = ["piglet", "rabbit", "tigrou"];
+        this.avatars = ["piglet", "rabbit", "tigrou", "pooh"];
 
     };
 
@@ -29,28 +31,28 @@ var JumperGame;
 
             this.game.renderer.renderSession.roundPixels = true;
 
-            this.world.resize(this.game.width, this.game.height*100);
+            this.world.resize(this.game.width, this.game.height*this._worldSize);
 
             this.physics.startSystem(Phaser.Physics.ARCADE);
 
-            this.physics.arcade.gravity.y = 300;
+            this.physics.arcade.gravity.y = this._gravity;
             this.physics.arcade.skipQuadTree = false;
 
         },
         customSep: function (player, platform) {
 
-            if (!player.locked && player.body.velocity.y > 0)
+            if (!player.hit && !player.locked && player.body.velocity.y > 0 && (player.body.y-player.height) <= platform.body.y)
             {
                 player.jumpCount = 0;
                 player.locked = true;
                 player.lockedTo = platform;
-                platform.playerLocked = true; 
+                player.targetPlatform = null;
 
                 player.body.velocity.y = 0;
-                player.body.velocity.x = 0;
+                player.body.acceleration.x = 0;
                 if(!platform.touched){
-                    this.score += 10;
-                    this.scoreText.text = 'Score: ' + this.score;
+                    player.interface.score += 10;
+                    player.interface.scoreText.text = 'Score: ' + player.interface.score;
                     platform.touched = true;
                     this.createLinePlatform();
                 }
@@ -87,6 +89,13 @@ var JumperGame;
             this.load.image("platform", "assets/platforms/cloud.png");
             that.load.json("platformAnimations", "assets/platforms/animations.json");
 
+            this.load.atlasJSONHash(
+                "poohProfile",
+                "assets/pooh/profile/sprite.png",
+                "assets/pooh/profile/sprite.json"
+            );
+            that.load.json("poohProfileAnimations", "assets/pooh/profile/animations.json");
+
             this.avatars.forEach(addAvatarAsset);
 
             function addAvatarAsset(name){
@@ -100,12 +109,14 @@ var JumperGame;
             }
         },
         createLinePlatform: function(init){
+            // platform 128 * 32
             var minY = 182;
-            var maxX = this.game.width/2-256;
+            var maxX = this.game.width/2-128;
             var x = this.rnd.between(0, maxX);
-            var y = this.game.height*100-(minY*(Math.floor(this.platforms.children.length/2)+1));
+            var y = this.game.world.height-(minY*(Math.floor(this.platforms.children.length/2)+1));
             new CloudPlatform(this.game, x, y, "platform", this.platforms);
-            new CloudPlatform(this.game, x+maxX, y, "platform", this.platforms);
+            x = this.rnd.between(this.game.width/2, this.game.width-128);
+            new CloudPlatform(this.game, x, y, "platform", this.platforms);
         },
         create: function(){
             var that = this;      
@@ -113,24 +124,19 @@ var JumperGame;
             this.stage.backgroundColor = "#2f9acc";
             this.sky = this.add.tileSprite(0, 0, this.game.width, this.game.height, "clouds");
             this.sky.fixedToCamera = true;
-            this.add.tileSprite(0, this.game.height*100-94, this.game.width, 94, 'trees');
-
-            /** score interface */
-            this.spriteScore = this.add.sprite(0,0);
-            this.spriteScore.fixedToCamera = true;
-            this.scoreText = this.add.text(5, 5, 'score: 0', { fontSize: '32px', fill: '#000' });
-            this.spriteScore.addChild(this.scoreText);            
+            this.add.tileSprite(0, this.game.world.height-94, this.game.width, 94, 'trees');                        
 
             /** init platforms */
             this.platforms = this.add.physicsGroup();
             this.createLinePlatform(true);
 
-
-            this.player = new Player(this.game, "tigrou", this.platforms);
+            /** init players */
+            this.players = this.add.physicsGroup();
+            this.player = new Player(this.game, "pooh", this.platforms, this.players);
             // add bots
             for(var i=0; i<this.nbBot; i++){
-                this.bots.push(new Player(this.game, this.avatars[this.rnd.between(0, this.avatars.length-1)], this.platforms));
-                this.bots[this.bots.length-1].startIA();
+                this.bots.push(new Player(this.game, this.avatars[this.rnd.between(0, this.avatars.length-1)], this.platforms, this.players));
+                requestAnimationFrame(this.bots[this.bots.length-1].startIA.bind(this.bots[this.bots.length-1]));
             }
 
 
@@ -166,7 +172,7 @@ var JumperGame;
         update: function() {
             var that = this;
             if(!this.game.paused){
-                if(this.player.body.y === (this.game.height*100-this.player.height)){    
+                if(this.player.body.y === (this.game.world.height-this.player.height)){    
                   /*  if(this.started){
                         this.loose();
                     }*/
@@ -176,13 +182,48 @@ var JumperGame;
                 this.sky.tilePosition.y = -(this.camera.y * 0.7);
 
                 this.physics.arcade.collide(this.player, this.platforms, this.customSep, null, this);
-                this.bots.forEach(checkBotCollision);                                
-
+                for(var i=0; i<this.bots.length; i++){
+                    this.physics.arcade.collide(this.bots[i], this.platforms, this.customSep, null, this);
+                    this.physics.arcade.collide(this.bots[i], this.player, this.hit, null, this);
+                    for(var j=i-1; j>=0; j--){
+                        this.physics.arcade.collide(this.bots[i], this.bots[j], this.hit, null, this);
+                    }
+                }
                 this.player.checkNavigation(this.cursors);
             }    
 
-            function checkBotCollision(bot){
-                that.physics.arcade.collide(bot, that.platforms, that.customSep, null, that);
+        },
+        hit: function(player, bot){
+            if(bot.hit || player.hit){
+                return false;
+            }
+
+            var target = (player.body.y < bot.body.y) ? bot : player;
+
+            target.hit = true;
+            target.body.acceleration.x = 0;
+            target.animations.stop();
+            target.scale.y = 0.1;
+            target.locked = false;
+            target.wasLocked = false;
+            target.lockedTo = null;
+            var i = 0 ;
+            var timer = setInterval(dying, 250);
+
+            function dying(){
+                if(i === 10){
+                    clearInterval(timer);
+                    target.hit = false;
+                    target.alpha = 1;
+                    target.scale.y = 1;
+                    return false;
+                }
+                target.body.acceleration.x = 0;
+                target.body.velocity.x = 0;
+                target.animations.stop();
+                target.body.velocity.y = 300;
+                target.alpha = Math.abs(target.alpha - 1);
+                i++;
             }
         }    
     };

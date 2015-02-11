@@ -3,10 +3,6 @@ var JumperGame;
 (function(){
     "use strict";
     JumperGame = function () {
-        this.score = 0;
-        this.scoreText;
-        this.tweenX;
-        this.tweenY;
         this._gravity = 300;
         this._worldSize = 1000;
 
@@ -15,10 +11,8 @@ var JumperGame;
         this.platforms = null;
         this.sky = null;
         
-        this.nbBot = 1;
+        this.nbBot = 10;
         this.jumpkey;
-        this.spriteScore;
-        this.sprtieOver;
 
         this.cursors = null;
         this.avatars = ["piglet", "rabbit", "tigrou", "pooh"];
@@ -52,7 +46,7 @@ var JumperGame;
                 player.body.acceleration.x = 0;
                 if(!platform.touched){
                     player.interface.score += 10;
-                    player.interface.scoreText.text = 'Score: ' + player.interface.score;
+                    player.interface.scoreText.text = "Score: " + player.interface.score;
                     platform.touched = true;
                     this.createLinePlatform();
                 }
@@ -89,12 +83,7 @@ var JumperGame;
             this.load.image("platform", "assets/platforms/cloud.png");
             that.load.json("platformAnimations", "assets/platforms/animations.json");
 
-            this.load.atlasJSONHash(
-                "poohProfile",
-                "assets/pooh/profile/sprite.png",
-                "assets/pooh/profile/sprite.json"
-            );
-            that.load.json("poohProfileAnimations", "assets/pooh/profile/animations.json");
+            
 
             this.avatars.forEach(addAvatarAsset);
 
@@ -106,6 +95,13 @@ var JumperGame;
                     path+"sprite.png",
                     path+"sprite.json"
                 );
+                /** profile */
+                that.load.atlasJSONHash(
+                    name+"Profile",
+                    path+"profile/sprite.png",
+                    path+"profile/sprite.json"
+                );
+                that.load.json(name+"ProfileAnimations", path+"profile/animations.json");
             }
         },
         createLinePlatform: function(init){

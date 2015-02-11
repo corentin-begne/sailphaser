@@ -197,8 +197,8 @@ var Player;
         {
             if (this.facing !== "idle")
             {
-                this.animations.stop();
-                this.frame = this.animations.currentAnim._frames[0];
+              //  this.frame = this.animations.currentAnim._frames[0];
+                this.play(this.facing+"Stand");
                 this.facing = "idle";
             }
         } 

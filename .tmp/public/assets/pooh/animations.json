@@ -11,12 +11,12 @@
     },
     "rightStand":{
         "frames": ["24.png", "25.png", "26.png", "27.png", "28.png", "29.png"],
-        "loop": true,
-        "speed": 9
+        "loop": false,
+        "speed": 5
     },
     "leftStand":{
         "frames": ["30.png", "31.png", "32.png", "33.png", "34.png", "35.png"],
-        "loop": true,
-        "speed": 9
+        "loop": false,
+        "speed": 5
     }
 }

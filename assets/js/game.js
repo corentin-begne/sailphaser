@@ -11,7 +11,7 @@ var JumperGame;
         this.platforms = null;
         this.sky = null;
         
-        this.nbBot = 10;
+        this.nbBot = 5;
         this.jumpkey;
 
         this.cursors = null;
@@ -199,7 +199,7 @@ var JumperGame;
             target.hit = true;
             target.body.acceleration.x = 0;
             target.animations.stop();
-            target.scale.y = 0.1;
+            target.scale.y = 0.3;
             target.locked = false;
             target.wasLocked = false;
             target.lockedTo = null;
@@ -211,7 +211,7 @@ var JumperGame;
                     clearInterval(timer);
                     target.hit = false;
                     target.alpha = 1;
-                    target.scale.y = 1;
+                    target.scale.y = 3;
                     return false;
                 }
                 target.body.acceleration.x = 0;

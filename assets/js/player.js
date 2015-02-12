@@ -8,12 +8,14 @@ var Player;
         this._maxSpeedX = 200; 
         this._acceleration = 1500; 
         this._drag = 800;        
-        this._jumpSpeed = 1500;
+        this.timer;
+        this._jumpSpeed = 1500;        
 
         Phaser.Sprite.call(this, game, 0, game.world.height, avatar);
-        this.game.physics.arcade.enable(this);
+        this.scale = {x:3, y:3};
+        this.game.physics.arcade.enable(this);        
 
-        this.anchor.x = 0.5
+        this.anchor.x = 0.5;
         this.body.collideWorldBounds = true;  
         this.body.maxVelocity.setTo(this._maxSpeedX, this._maxSpeedY); 
         this.body.drag.setTo(this._drag, 0);
@@ -167,7 +169,6 @@ var Player;
     };     
 
     Player.prototype.checkNavigation = function (inputs) {
-
         this.body.acceleration.x = 0;
 
         if(this.hit){
@@ -175,6 +176,7 @@ var Player;
         }
         if (inputs.left.isDown)
         {
+            clearTimeout(this.timer);
             this.body.acceleration.x = -this._acceleration;
 
             if (this.facing !== "left")
@@ -185,6 +187,7 @@ var Player;
         }
         else if (inputs.right.isDown)
         {
+            clearTimeout(this.timer);
             this.body.acceleration.x = this._acceleration;
 
             if (this.facing !== "right")
@@ -198,14 +201,24 @@ var Player;
             if (this.facing !== "idle")
             {
               //  this.frame = this.animations.currentAnim._frames[0];
-                this.play(this.facing+"Stand");
-                this.facing = "idle";
+                this.animations.stop();
+                this.frame = this.animations.currentAnim._frames[0];
+                var facing = this.facing;
+                if(this.body.velocity.y <= 5){
+                    this.timer = setTimeout(playStand, 5000);
+                    this.facing = "idle";
+                }    
+                
             }
         } 
 
         if (this.locked)
         {
             this.checkLock();
+        }
+        var that = this;
+        function playStand(){
+             that.play(facing+"Stand");
         }
 
     };

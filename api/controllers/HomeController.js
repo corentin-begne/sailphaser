@@ -5,16 +5,18 @@
  * @help        :: See http://links.sailsjs.org/docs/controllers
  */
 
-module.exports = {
-	
+ module.exports = {
+   
 
 
   /**
    * `HomeController.index()`
    */
-  index: function (req, res) {
-    return res.view('home.ejs', {
-        test:'yoo'
+   index: function (req, res) {
+    var avatars = ["pooh", "piglet", "tiger", "rabbit"];
+    res.locals.layout = "layouts/home";
+    return res.view("home.ejs", {     
+      avatars:avatars
     });
   }
 };

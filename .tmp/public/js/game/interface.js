@@ -7,7 +7,7 @@ var Interface;
         this.score = 0;
         this.avatar = key;
         var lastScore = (group.children.length > 0) ? group.getChildAt(group.children.length-1).interface : null;
-        var margin = (group.children.length === 0) ? 0 : lastScore.position.x+(lastScore.scoreText.position.x+lastScore.scoreText.width)*lastScore.scale.x+50;
+        var margin = (group.children.length === 0) ? 0 : lastScore.position.x+(lastScore.scoreText.position.x+lastScore.scoreText.width)*lastScore.scale.x+100;
         Phaser.Sprite.call(this, game, margin, 5, this.avatar+"Profile");             
         this.fixedToCamera = true;
         var fontSize = "bold 30px walt";

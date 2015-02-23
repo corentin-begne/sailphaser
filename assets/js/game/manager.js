@@ -11,12 +11,12 @@ var JumperGame;
         this.platforms = null;
         this.sky = null;
         
-        this.nbBot = 5;
+        this.nbBot = 2;
         this.jumpkey;
 
         this.cursors = null;
         this.avatars = ["piglet", "rabbit", "tigrou", "pooh"];
-
+        this.botAvatars = ["piglet", "rabbit", "tigrou"];
     };
 
     JumperGame.prototype = {
@@ -44,10 +44,13 @@ var JumperGame;
 
                 player.body.velocity.y = 0;
                 player.body.acceleration.x = 0;
-                if(!platform.touched){
+                if(platform.touched[this.players.getChildIndex(player)] === undefined){
                     player.interface.score += 10;
+                    if(platform.touched.length === 0){
+                        player.interface.score += 10;
+                    }
                     player.interface.scoreText.text = "Score: " + player.interface.score;
-                    platform.touched = true;
+                    platform.touched[this.players.getChildIndex(player)] = true;
                     this.createLinePlatform();
                 }
 
@@ -130,9 +133,10 @@ var JumperGame;
             this.players = this.add.physicsGroup();
             this.player = new Player(this.game, "pooh", this.platforms, this.players);
             // add bots
-            for(var i=0; i<this.nbBot; i++){
-                this.bots.push(new Player(this.game, this.avatars[this.rnd.between(0, this.avatars.length-1)], this.platforms, this.players));
-                requestAnimationFrame(this.bots[this.bots.length-1].startIA.bind(this.bots[this.bots.length-1]));
+            this.botAvatars.forEach(addBot);
+            function addBot(avatar){
+                that.bots.push(new Player(that.game, avatar, that.platforms, that.players));
+                requestAnimationFrame(that.bots[that.bots.length-1].startIA.bind(that.bots[that.bots.length-1]));
             }
 
 
@@ -140,7 +144,7 @@ var JumperGame;
 
             /** inputs */
             this.cursors = this.input.keyboard.createCursorKeys();   
-            this.jumpkey = this.game.input.keyboard.addKey(Phaser.Keyboard.UP);  
+            this.jumpkey = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);  
             this.jumpkey.onDown.add(this.player.jumpCheck.bind(this.player), this);                
         },
         loose: function(){

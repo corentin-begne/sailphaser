@@ -1,1 +1,13 @@
-<div id="game"></div>
+<img id="background" src="images/background.jpg" />
+<div class="mapContainer">
+	<img src="images/map.png" />
+</div>
+<div class="playContainer">
+    <div>Jouer</div>
+    <img src="images/cloud.png" />
+</div>
+<div class="avatarContainer">
+    <% avatars.forEach(function(avatar){ %>
+        <div id="<%= avatar %>"></div>
+    <% }) %>
+</div>

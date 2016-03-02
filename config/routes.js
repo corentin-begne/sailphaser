@@ -33,7 +33,7 @@ module.exports.routes = {
   ***************************************************************************/
   
   '/': {controller:'home', action:'index'},
-  '/game': {controller:'game', action:'index'}
+  '/game/:avatar': {controller:'game', action:'index'}
 
   /***************************************************************************
   *                                                                          *

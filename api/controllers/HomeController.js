@@ -13,11 +13,7 @@
    * `HomeController.index()`
    */
    index: function (req, res) {
-    var avatars = ["pooh", "piglet", "tiger", "rabbit"];
     res.locals.layout = "layouts/home";
-    return res.view("home.ejs", {     
-      avatars:avatars
-    });
+    return res.view("home.ejs");
   }
 };
-

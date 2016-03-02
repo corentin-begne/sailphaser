@@ -13,9 +13,9 @@ module.exports = {
    * `GameController.index()`
    */
   index: function (req, res) {
-  	res.locals.layout = 'layouts/game';
-    return res.view('game.ejs', {    	
-        test:'yoo'
+  	res.locals.layout = "layouts/game";
+    return res.view("game.ejs", {     
+      avatar:req.param("avatar")
     });
   }
 };

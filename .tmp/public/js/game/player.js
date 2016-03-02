@@ -20,9 +20,11 @@ var Player;
         this.body.maxVelocity.setTo(this._maxSpeedX, this._maxSpeedY); 
         this.body.drag.setTo(this._drag, 0);
 
-        this.interface = new Interface(this.game, avatar, group);
-        
-        this.platforms = platforms;
+        if(platforms !== null){
+            this.interface = new Interface(this.game, avatar, group);
+            
+            this.platforms = platforms;
+        }
         this.avatar = avatar;
         this.jumpCount = 0;
         this.wasLocked = false;

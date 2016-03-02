@@ -16,7 +16,7 @@ var JumperGame;
 
         this.cursors = null;
         this.avatars = ["piglet", "rabbit", "tigrou", "pooh"];
-        this.botAvatars = ["piglet", "rabbit", "tigrou"];
+        //this.botAvatars = ["piglet", "rabbit", "tigrou"];
     };
 
     JumperGame.prototype = {
@@ -81,17 +81,18 @@ var JumperGame;
         preload: function(){
             var that = this;
 
-            this.load.image("trees", "assets/tiles/trees.png");
-            this.load.image("clouds", "assets/tiles/clouds.png");
-            this.load.image("platform", "assets/platforms/cloud.png");
-            that.load.json("platformAnimations", "assets/platforms/animations.json");
+            this.load.image("trees", "/assets/tiles/trees.png");
+            this.load.image("panel", "/assets/panel.png");
+            this.load.image("clouds", "/assets/tiles/clouds.png");
+            this.load.image("platform", "/assets/platforms/cloud.png");
+            that.load.json("platformAnimations", "/assets/platforms/animations.json");
 
             
 
             this.avatars.forEach(addAvatarAsset);
 
             function addAvatarAsset(name){
-                var path = "assets/"+name+"/";
+                var path = "/assets/"+name+"/";
                 that.load.json(name+"Animations", path+"animations.json");
                 that.load.atlasJSONHash(
                     name,
@@ -113,12 +114,21 @@ var JumperGame;
             var maxX = this.game.width/2-128;
             var x = this.rnd.between(0, maxX);
             var y = this.game.world.height-(minY*(Math.floor(this.platforms.children.length/2)+1));
+            // create panel level info
+            if(this.platforms.children.length > 0 && this.platforms.children.length%10 === 0){
+                var panel = this.game.add.sprite(0, y+50, "panel");
+                var text = this.game.add.text(panel.width/2, panel.height/2, this.platforms.children.length/2, { font: "bold 21px walt", fill: "#000" }); 
+                text.position.x -= text.width/2; 
+                text.position.y -= text.height/2;
+                panel.addChild(text);
+            }
             new CloudPlatform(this.game, x, y, "platform", this.platforms);
             x = this.rnd.between(this.game.width/2, this.game.width-128);
             new CloudPlatform(this.game, x, y, "platform", this.platforms);
         },
         create: function(){
-            var that = this;      
+            var that = this;   
+            var currentAvatar = $("#currentAvatar").val();   
             /** background */
             this.stage.backgroundColor = "#2f9acc";
             this.sky = this.add.tileSprite(0, 0, this.game.width, this.game.height, "clouds");
@@ -131,12 +141,14 @@ var JumperGame;
 
             /** init players */
             this.players = this.add.physicsGroup();
-            this.player = new Player(this.game, "pooh", this.platforms, this.players);
+            this.player = new Player(this.game, currentAvatar, this.platforms, this.players);
             // add bots
-            this.botAvatars.forEach(addBot);
+            this.avatars.forEach(addBot);
             function addBot(avatar){
-                that.bots.push(new Player(that.game, avatar, that.platforms, that.players));
-                requestAnimationFrame(that.bots[that.bots.length-1].startIA.bind(that.bots[that.bots.length-1]));
+                if(avatar !== currentAvatar){
+                    that.bots.push(new Player(that.game, avatar, that.platforms, that.players));
+                    requestAnimationFrame(that.bots[that.bots.length-1].startIA.bind(that.bots[that.bots.length-1]));
+                }
             }
 
 
